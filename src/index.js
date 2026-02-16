@@ -12,16 +12,22 @@ const app = express();
 // Connect to Database
 connectDB();
 
-// CORS - Permitir todo en producción para debugging
+// CORS PRIMERO - antes que todo
 app.use(cors({
-  origin: true, 
+  origin: '*', // Permitir TODOS los orígenes
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 600
 }));
 
 // Middlewares
-app.use(helmet()); // Security headers
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Desactivar para permitir CORS
+  crossOriginOpenerPolicy: false,
+  crossOriginEmbedderPolicy: false
+})); // Security headers
 app.use(generalLimiter); // Rate limiting
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
