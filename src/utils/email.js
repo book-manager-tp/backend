@@ -2,15 +2,48 @@ const nodemailer = require('nodemailer');
 
 class EmailUtil {
   constructor() {
+    const emailPort = parseInt(process.env.EMAIL_PORT || '587');
+    const isSecure = emailPort === 465;
+
     this.transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      secure: false, // true para 465, false para otros puertos
+      port: emailPort,
+      secure: isSecure, // true para 465, false para 587
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
+      tls: {
+        rejectUnauthorized: false, // Útil para desarrollo, considerar cambiar en producción
+        ciphers: 'SSLv3'
+      },
+      connectionTimeout: 10000, // 10 segundos timeout de conexión
+      greetingTimeout: 10000, // 10 segundos timeout de saludo
+      socketTimeout: 15000, // 15 segundos timeout de socket
+      pool: true, // Usar pool de conexiones
+      maxConnections: 5,
+      maxMessages: 100,
+      logger: process.env.NODE_ENV !== 'production', // Log en desarrollo
+      debug: process.env.NODE_ENV !== 'production', // Debug en desarrollo
     });
+
+    // Verificar conexión al iniciar
+    this.verifyConnection();
+  }
+
+  async verifyConnection() {
+    try {
+      await this.transporter.verify();
+      console.log('✓ Email server connection verified');
+    } catch (error) {
+      console.error('✗ Email server connection failed:', error.message);
+      console.error('Email config:', {
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT,
+        user: process.env.EMAIL_USER,
+        secure: parseInt(process.env.EMAIL_PORT || '587') === 465
+      });
+    }
   }
 
   // Enviar email de verificacion
@@ -43,10 +76,17 @@ class EmailUtil {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      console.log(`Verification email sent to ${email}`);
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`✓ Verification email sent to ${email}, info.messageId: ${info.messageId}`);
+      return info;
     } catch (error) {
-      console.error('Error sending verification email:', error);
+      console.error('✗ Error sending verification email:', {
+        error: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode,
+      });
       throw new Error('Failed to send verification email');
     }
   }
@@ -81,10 +121,15 @@ class EmailUtil {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      console.log(`Password reset email sent to ${email}`);
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`✓ Password reset email sent to ${email}, info.messageId: ${info.messageId}`);
+      return info;
     } catch (error) {
-      console.error('Error sending password reset email:', error);
+      console.error('✗ Error sending password reset email:', {
+        error: error.message,
+        code: error.code,
+        command: error.command,
+      });
       throw new Error('Failed to send password reset email');
     }
   }
@@ -99,10 +144,14 @@ class EmailUtil {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-      console.log(`Email sent to ${to}`);
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`✓ Email sent to ${to}, info.messageId: ${info.messageId}`);
+      return info;
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('✗ Error sending email:', {
+        error: error.message,
+        code: error.code,
+      });
       throw new Error('Failed to send email');
     }
   }
