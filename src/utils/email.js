@@ -13,8 +13,9 @@ class EmailUtil {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
+      family: 4, // FORZAR IPv4 (Railway tiene problemas con IPv6)
       tls: {
-        rejectUnauthorized: false, // Útil para desarrollo, considerar cambiar en producción
+        rejectUnauthorized: false,
         ciphers: 'SSLv3'
       },
       connectionTimeout: 10000, // 10 segundos timeout de conexión
@@ -34,9 +35,9 @@ class EmailUtil {
   async verifyConnection() {
     try {
       await this.transporter.verify();
-      console.log('✓ Email server connection verified');
+      console.log('Email server connection verified');
     } catch (error) {
-      console.error('✗ Email server connection failed:', error.message);
+      console.error('Email server connection failed:', error.message);
       console.error('Email config:', {
         host: process.env.EMAIL_HOST,
         port: process.env.EMAIL_PORT,
@@ -77,10 +78,10 @@ class EmailUtil {
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log(`✓ Verification email sent to ${email}, info.messageId: ${info.messageId}`);
+      console.log(`Verification email sent to ${email}, info.messageId: ${info.messageId}`);
       return info;
     } catch (error) {
-      console.error('✗ Error sending verification email:', {
+      console.error('Error sending verification email:', {
         error: error.message,
         code: error.code,
         command: error.command,
@@ -122,10 +123,10 @@ class EmailUtil {
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log(`✓ Password reset email sent to ${email}, info.messageId: ${info.messageId}`);
+      console.log(`Password reset email sent to ${email}, info.messageId: ${info.messageId}`);
       return info;
     } catch (error) {
-      console.error('✗ Error sending password reset email:', {
+      console.error('Error sending password reset email:', {
         error: error.message,
         code: error.code,
         command: error.command,
@@ -145,10 +146,10 @@ class EmailUtil {
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log(`✓ Email sent to ${to}, info.messageId: ${info.messageId}`);
+      console.log(`Email sent to ${to}, info.messageId: ${info.messageId}`);
       return info;
     } catch (error) {
-      console.error('✗ Error sending email:', {
+      console.error('Error sending email:', {
         error: error.message,
         code: error.code,
       });
