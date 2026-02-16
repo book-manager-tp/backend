@@ -12,33 +12,16 @@ const app = express();
 // Connect to Database
 connectDB();
 
-// CORS configuration - Permitir Vercel y localhost
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Permitir requests sin origin (como Postman o mobile apps)
-    if (!origin) return callback(null, true);
-    
-    // Permitir localhost y todos los dominios de Vercel
-    if (
-      origin.includes('localhost') ||
-      origin.endsWith('.vercel.app') ||
-      origin === 'https://frontend-nu-one-67.vercel.app'
-    ) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+// CORS - Permitir todo en producción para debugging
+app.use(cors({
+  origin: true, 
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
-};
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Middlewares
 app.use(helmet()); // Security headers
-app.use(cors(corsOptions)); // Enable CORS
 app.use(generalLimiter); // Rate limiting
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
@@ -56,8 +39,10 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+const HOST = '0.0.0.0'; // Escuchar en todas las interfaces (necesario para Railway)
+
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on ${HOST}:${PORT} in ${process.env.NODE_ENV} mode`);
 });
 
 module.exports = app;
