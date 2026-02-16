@@ -15,7 +15,7 @@ connectDB();
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://frontend-nu-one-67.vercel.app/'
+  'https://frontend-nu-one-67.vercel.app'
 ];
 
 const corsOptions = {
