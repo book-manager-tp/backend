@@ -12,25 +12,25 @@ const app = express();
 // Connect to Database
 connectDB();
 
-// CORS configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://frontend-nu-one-67.vercel.app',
-  'https://frontend-nu-one-67.vercel.app/',
-];
-
+// CORS configuration - Permitir Vercel y localhost
 const corsOptions = {
   origin: function (origin, callback) {
     // Permitir requests sin origin (como Postman o mobile apps)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(allowed => origin?.startsWith(allowed))) {
+    // Permitir localhost y todos los dominios de Vercel
+    if (
+      origin.includes('localhost') ||
+      origin.endsWith('.vercel.app') ||
+      origin === 'https://frontend-nu-one-67.vercel.app'
+    ) {
       callback(null, true);
     } else {
+      console.log('CORS blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // Permite el envío de cookies y headers de autenticación
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
