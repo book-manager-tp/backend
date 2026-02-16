@@ -1,59 +1,19 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 class EmailUtil {
   constructor() {
-    const emailPort = parseInt(process.env.EMAIL_PORT || '587');
-    const isSecure = emailPort === 465;
-
-    this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: emailPort,
-      secure: isSecure, // true para 465, false para 587
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      family: 4, // FORZAR IPv4 (Railway tiene problemas con IPv6)
-      tls: {
-        rejectUnauthorized: false,
-        ciphers: 'SSLv3'
-      },
-      connectionTimeout: 10000, // 10 segundos timeout de conexión
-      greetingTimeout: 10000, // 10 segundos timeout de saludo
-      socketTimeout: 15000, // 15 segundos timeout de socket
-      pool: true, // Usar pool de conexiones
-      maxConnections: 5,
-      maxMessages: 100,
-      logger: process.env.NODE_ENV !== 'production', // Log en desarrollo
-      debug: process.env.NODE_ENV !== 'production', // Debug en desarrollo
-    });
-
-    // Verificar conexión al iniciar
-    this.verifyConnection();
-  }
-
-  async verifyConnection() {
-    try {
-      await this.transporter.verify();
-      console.log('Email server connection verified');
-    } catch (error) {
-      console.error('Email server connection failed:', error.message);
-      console.error('Email config:', {
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
-        user: process.env.EMAIL_USER,
-        secure: parseInt(process.env.EMAIL_PORT || '587') === 465
-      });
-    }
+    // Configurar SendGrid con la API Key
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log('SendGrid initialized');
   }
 
   // Enviar email de verificacion
   async sendVerificationEmail(email, token) {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
 
-    const mailOptions = {
-      from: process.env.EMAIL_FROM,
+    const msg = {
       to: email,
+      from: process.env.EMAIL_FROM, // Debe estar verificado en SendGrid
       subject: 'Verify your email',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -77,16 +37,14 @@ class EmailUtil {
     };
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log(`Verification email sent to ${email}, info.messageId: ${info.messageId}`);
-      return info;
+      const response = await sgMail.send(msg);
+      console.log(`Verification email sent to ${email}, messageId: ${response[0].headers['x-message-id']}`);
+      return response;
     } catch (error) {
       console.error('Error sending verification email:', {
         error: error.message,
         code: error.code,
-        command: error.command,
-        response: error.response,
-        responseCode: error.responseCode,
+        response: error.response?.body
       });
       throw new Error('Failed to send verification email');
     }
@@ -96,9 +54,9 @@ class EmailUtil {
   async sendPasswordResetEmail(email, token) {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
-    const mailOptions = {
-      from: process.env.EMAIL_FROM,
+    const msg = {
       to: email,
+      from: process.env.EMAIL_FROM,
       subject: 'Password Reset Request',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -122,14 +80,14 @@ class EmailUtil {
     };
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log(`Password reset email sent to ${email}, info.messageId: ${info.messageId}`);
-      return info;
+      const response = await sgMail.send(msg);
+      console.log(`Password reset email sent to ${email}, messageId: ${response[0].headers['x-message-id']}`);
+      return response;
     } catch (error) {
       console.error('Error sending password reset email:', {
         error: error.message,
         code: error.code,
-        command: error.command,
+        response: error.response?.body
       });
       throw new Error('Failed to send password reset email');
     }
@@ -137,21 +95,22 @@ class EmailUtil {
 
   // Enviar email generico
   async sendEmail(to, subject, html) {
-    const mailOptions = {
-      from: process.env.EMAIL_FROM,
+    const msg = {
       to,
+      from: process.env.EMAIL_FROM,
       subject,
       html,
     };
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log(`Email sent to ${to}, info.messageId: ${info.messageId}`);
-      return info;
+      const response = await sgMail.send(msg);
+      console.log(`Email sent to ${to}, messageId: ${response[0].headers['x-message-id']}`);
+      return response;
     } catch (error) {
       console.error('Error sending email:', {
         error: error.message,
         code: error.code,
+        response: error.response?.body
       });
       throw new Error('Failed to send email');
     }
