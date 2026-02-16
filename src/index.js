@@ -15,7 +15,8 @@ connectDB();
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://frontend-nu-one-67.vercel.app'
+  'https://frontend-nu-one-67.vercel.app',
+  'https://frontend-nu-one-67.vercel.app/',
 ];
 
 const corsOptions = {
@@ -23,7 +24,7 @@ const corsOptions = {
     // Permitir requests sin origin (como Postman o mobile apps)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(allowed => origin?.startsWith(allowed))) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -31,7 +32,8 @@ const corsOptions = {
   },
   credentials: true, // Permite el envío de cookies y headers de autenticación
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
 };
 
 // Middlewares

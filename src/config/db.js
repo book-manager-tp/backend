@@ -19,7 +19,7 @@ const connectDB = async () => {
     // Importar modelos para establecer relaciones
     require('../models/index');
     
-    // Sincronizar modelos en desarrollo
+    // Sincronizar modelos solo en desarrollo
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true });
       console.log('Database synchronized');
@@ -27,6 +27,9 @@ const connectDB = async () => {
       // Ejecutar seed de datos iniciales
       const seedDatabase = require('./seedData');
       await seedDatabase();
+    } else {
+      // En producción, solo verificar las tablas
+      console.log('Running in production mode - skipping auto sync');
     }
   } catch (error) {
     console.error(`Error: ${error.message}`);
