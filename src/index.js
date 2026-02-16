@@ -12,9 +12,31 @@ const app = express();
 // Connect to Database
 connectDB();
 
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://frontend-production-8487.up.railway.app'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (como Postman o mobile apps)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Permite el envío de cookies y headers de autenticación
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Middlewares
 app.use(helmet()); // Security headers
-app.use(cors()); // Enable CORS
+app.use(cors(corsOptions)); // Enable CORS
 app.use(generalLimiter); // Rate limiting
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies

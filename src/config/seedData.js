@@ -1240,25 +1240,42 @@ const getInitialBooks = (users) => {
   ];
 };
 
+// Categorías iniciales
+const initialCategories = [
+  { id: 1, name: 'Terror', description: 'Historias de terror, horror y suspenso que te mantendrán al borde del asiento' },
+  { id: 2, name: 'Acción', description: 'Aventuras trepidantes llenas de acción y adrenalina' },
+  { id: 3, name: 'Romance', description: 'Historias de amor y relaciones que te llegarán al corazón' },
+  { id: 4, name: 'Ciencia Ficción', description: 'Explora futuros imaginarios, tecnología avanzada y mundos alternativos' },
+  { id: 5, name: 'Fantasía', description: 'Mundos mágicos, criaturas fantásticas y aventuras épicas' },
+  { id: 6, name: 'Misterio', description: 'Intriga, crímenes y enigmas por resolver' },
+  { id: 7, name: 'Historia', description: 'Relatos basados en hechos históricos y épocas pasadas' },
+  { id: 8, name: 'Biografía', description: 'Vidas reales de personas extraordinarias' },
+  { id: 9, name: 'Tecnología', description: 'Libros sobre tecnología, programación y el mundo digital' },
+  { id: 10, name: 'Autoayuda', description: 'Desarrollo personal, motivación y crecimiento personal' }
+];
+
 const seedDatabase = async () => {
   try {
     console.log('Starting database seed...');
 
-    // Verificar si ya existen los usuarios del seed (verificar por un email específico)
-    const seedUserExists = await User.findOne({ 
-      where: { email: 'maria.garcia@example.com' } 
-    });
+    // 1. CATEGORÍAS: Crear categorías si no existen
+    console.log('Checking categories...');
+    const categoryCount = await Category.count();
     
-    if (seedUserExists) {
-      console.log('Seed users already exist. Skipping...');
-      return;
+    if (categoryCount === 0) {
+      console.log('Creating categories...');
+      for (const categoryData of initialCategories) {
+        await Category.create(categoryData);
+      }
+      console.log(`Created ${initialCategories.length} categories`);
+    } else {
+      console.log('Categories already exist');
     }
 
-    // Crear usuarios
-    console.log('Creating seed users...');
+    // 2. USUARIOS: Crear usuarios si no existen
+    console.log('Checking users...');
     const createdUsers = [];
     for (const userData of initialUsers) {
-      // Verificar si el usuario ya existe antes de crearlo
       const existingUser = await User.findOne({ where: { email: userData.email } });
       if (!existingUser) {
         const user = await User.create(userData);
@@ -1267,26 +1284,32 @@ const seedDatabase = async () => {
         createdUsers.push(existingUser);
       }
     }
-    console.log(`✓ Created ${createdUsers.length} seed users`);
-
-    // Verificar que las categorías existan
-    const categoryCount = await Category.count();
-    if (categoryCount === 0) {
-      console.log('No categories found. Please run category seed first.');
-      return;
+    
+    if (createdUsers.filter(u => u.createdAt && new Date().getTime() - new Date(u.createdAt).getTime() < 10000).length > 0) {
+      console.log(`Created ${createdUsers.filter(u => u.createdAt && new Date().getTime() - new Date(u.createdAt).getTime() < 10000).length} new users`);
+    } else {
+      console.log('Users already exist');
     }
 
-    // Crear libros
-    console.log('Creating books...');
-    const booksData = getInitialBooks(createdUsers);
-    let bookCount = 0;
+    // 3. LIBROS: Crear libros si no existen
+    console.log('Checking books...');
+    const bookCount = await Book.count();
     
-    for (const bookData of booksData) {
-      await Book.create(bookData);
-      bookCount++;
+    if (bookCount === 0) {
+      console.log('Creating books...');
+      const booksData = getInitialBooks(createdUsers);
+      let createdBooksCount = 0;
+      
+      for (const bookData of booksData) {
+        await Book.create(bookData);
+        createdBooksCount++;
+      }
+      
+      console.log(`Created ${createdBooksCount} books`);
+    } else {
+      console.log('Books already exist');
     }
     
-    console.log(`Created ${bookCount} books`);
     console.log('Database seeded successfully');
   } catch (error) {
     console.error('Error seeding database:', error);
