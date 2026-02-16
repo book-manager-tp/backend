@@ -83,6 +83,15 @@ class UserRepository {
     });
   }
 
+  // Buscar por token de verificacion (incluso si expiró o fue usado)
+  async findByVerificationTokenIncludingExpired(token) {
+    return await User.findOne({
+      where: {
+        verificationToken: token,
+      },
+    });
+  }
+
   // Buscar por token de reset password
   async findByResetToken(token) {
     return await User.findOne({
@@ -100,8 +109,9 @@ class UserRepository {
     
     return await user.update({
       isVerified: true,
-      verificationToken: null,
-      verificationTokenExpires: null,
+      // Mantener el token para poder identificar usuarios ya verificados
+      // verificationToken: null,
+      // verificationTokenExpires: null,
     });
   }
 }

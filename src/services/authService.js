@@ -70,11 +70,24 @@ class AuthService {
 
   // Verificar email
   async verifyEmail(token) {
-    const user = await userRepository.findByVerificationToken(token);
+    // Buscar el usuario por el token (sin importar si expiró)
+    const user = await userRepository.findByVerificationTokenIncludingExpired(token);
+    
     if (!user) {
-      throw new Error('Invalid or expired verification token');
+      throw new Error('Invalid verification token');
     }
 
+    // Si el usuario ya está verificado
+    if (user.isVerified) {
+      return { message: 'Email already verified. You can now log in.' };
+    }
+
+    // Verificar si el token expiró
+    if (user.verificationTokenExpires && new Date(user.verificationTokenExpires) < new Date()) {
+      throw new Error('Verification token has expired. Please request a new verification email.');
+    }
+
+    // Verificar el usuario
     await userRepository.verifyUser(user.id);
 
     return { message: 'Email verified successfully' };
