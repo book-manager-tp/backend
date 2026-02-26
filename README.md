@@ -2,7 +2,7 @@
 
 Este proyecto es una aplicacion backend que permite gestionar libros y categorias con autenticacion de usuarios. Incluye autenticacion con JWT, base de datos MySQL con Sequelize ORM y arquitectura en capas.
 
-App desplegada: (link)[https://frontend-nu-one-67.vercel.app/]
+App desplegada: [link](https://frontend-nu-one-67.vercel.app/)
 
 ## Descripcion
 
