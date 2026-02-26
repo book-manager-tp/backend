@@ -2,6 +2,8 @@
 
 Este proyecto es una aplicacion backend que permite gestionar libros y categorias con autenticacion de usuarios. Incluye autenticacion con JWT, base de datos MySQL con Sequelize ORM y arquitectura en capas.
 
+App desplegada: (link)[https://frontend-nu-one-67.vercel.app/]
+
 ## Descripcion
 
 Book Manager Backend es una API REST donde los usuarios pueden registrarse, iniciar sesion y gestionar una biblioteca de libros. Los usuarios autenticados pueden crear, editar y eliminar sus propios libros, mientras que cualquier usuario puede consultar el catalogo completo y las categorias disponibles. El sistema incluye verificacion de email.
